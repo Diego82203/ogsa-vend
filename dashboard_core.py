@@ -176,7 +176,11 @@ st.markdown(
         }
         div[data-testid="stPlotlyChart"] .js-plotly-plot,
         div[data-testid="stPlotlyChart"] .plot-container,
-        div[data-testid="stPlotlyChart"] .svg-container {max-width:100% !important;}
+        div[data-testid="stPlotlyChart"] .svg-container {
+          max-width:100% !important;
+          touch-action:pan-y !important;
+          overscroll-behavior:contain;
+        }
         div[data-testid="stDataFrame"] {
           width:100% !important; max-width:100% !important; border-radius:12px;
         }
@@ -313,11 +317,29 @@ def priority_card(item: dict):
 _plotly_render_counter = 0
 
 def _render_plotly_chart(fig, **kwargs):
-    """Render Plotly figures with a unique, deterministic-per-run Streamlit key."""
+    """Render Plotly charts safely on desktop and as touch-first cards on phones."""
     global _plotly_render_counter
     _plotly_render_counter += 1
     kwargs.setdefault("key", f"ogsa_plotly_{_plotly_render_counter}")
-    return st.plotly_chart(fig, **kwargs)
+
+    config = dict(kwargs.pop("config", {}) or {})
+    config.update({
+        "displayModeBar": False,
+        "displaylogo": False,
+        "responsive": True,
+        "scrollZoom": False,
+        "doubleClick": False,
+        "showTips": False,
+    })
+
+    if APP_MODE == "Vendedor":
+        # Seller portal is primarily phone-first: keep tap tooltips, but prevent
+        # accidental axis zoom/pan that can trap the user inside a chart.
+        fig.update_xaxes(fixedrange=True)
+        fig.update_yaxes(fixedrange=True)
+        fig.update_layout(dragmode=False, hovermode="closest")
+
+    return st.plotly_chart(fig, config=config, **kwargs)
 
 def bar_chart(items: list[dict], label_col: str, value_col: str, title: str, color: str, height: int = 380, value_type: str = "money"):
     if not items:
