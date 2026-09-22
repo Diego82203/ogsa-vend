@@ -997,7 +997,8 @@ def manager_metrics(start_date: date | None = None, end_date: date | None = None
         SELECT
           COUNT(*) records,
           COALESCE(SUM(net_sales),0) net_sales,
-          COALESCE(SUM(CASE WHEN transaction_code='VT' AND net_sales > 0 THEN net_sales ELSE 0 END),0) gross_sales,          COALESCE(SUM(CASE WHEN transaction_code='NC' OR net_sales < 0 THEN ABS(net_sales) ELSE 0 END),0) returns,
+          COALESCE(SUM(CASE WHEN transaction_code='VT' AND net_sales > 0 THEN net_sales ELSE 0 END),0) gross_sales,
+          COALESCE(SUM(CASE WHEN transaction_code='NC' OR net_sales < 0 THEN ABS(net_sales) ELSE 0 END),0) returns,
           COALESCE(SUM(CASE WHEN net_sales <> 0 THEN net_sales - (COALESCE(unit_cost,0) * quantity) ELSE 0 END),0) gross_profit,
           COALESCE(SUM(CASE WHEN transaction_code='VT' AND net_sales > 0 THEN quantity ELSE 0 END),0) units,
           COUNT(DISTINCT CASE WHEN transaction_code='VT' AND net_sales > 0 THEN invoice_no END) invoices,
@@ -1996,7 +1997,8 @@ if page == "Mi día":
             paper_bgcolor="white", plot_bgcolor="white",
             xaxis=dict(side="top", tickfont=dict(size=13), showgrid=False),
             yaxis=dict(autorange="reversed", tickfont=dict(size=12), showgrid=False),
-        )        st.plotly_chart(fig_hm, use_container_width=True, config={"displayModeBar": False})
+        )
+        st.plotly_chart(fig_hm, use_container_width=True, config={"displayModeBar": False})
     else:
         st.info("No hay datos suficientes para el mapa de calor.")
 
