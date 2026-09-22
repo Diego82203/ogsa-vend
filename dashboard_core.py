@@ -309,6 +309,16 @@ def priority_card(item: dict):
     )
 
 
+
+_plotly_render_counter = 0
+
+def _render_plotly_chart(fig, **kwargs):
+    """Render Plotly figures with a unique, deterministic-per-run Streamlit key."""
+    global _plotly_render_counter
+    _plotly_render_counter += 1
+    kwargs.setdefault("key", f"ogsa_plotly_{_plotly_render_counter}")
+    return st.plotly_chart(fig, **kwargs)
+
 def bar_chart(items: list[dict], label_col: str, value_col: str, title: str, color: str, height: int = 380, value_type: str = "money"):
     if not items:
         st.info("No hay datos para el filtro actual.")
@@ -341,7 +351,7 @@ def bar_chart(items: list[dict], label_col: str, value_col: str, title: str, col
         yaxis=dict(title="", showgrid=False),
         showlegend=False,
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    _render_plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
 def two_axis_daily_chart(series: list[dict]):
@@ -380,7 +390,7 @@ def two_axis_daily_chart(series: list[dict]):
     )
     fig.update_yaxes(title_text="Ventas / unidades", gridcolor="#EDF0F4", zeroline=False, secondary_y=False)
     fig.update_yaxes(title_text="Ticket promedio", showgrid=False, zeroline=False, secondary_y=True)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    _render_plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
 # ---------- Contexto de datos ----------
@@ -1524,7 +1534,7 @@ def manager_provider_treemap():
         marker=dict(colors=vals, colorscale=[[0, '#8CC8F8'], [0.45, '#188BF6'], [1, '#093C78']]),
     ))
     fig.update_layout(height=410, margin=dict(l=5, r=5, t=5, b=5), paper_bgcolor='white')
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    _render_plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
 def manager_weekly_chart():
@@ -1545,7 +1555,7 @@ def manager_weekly_chart():
     )
     fig.update_yaxes(title_text='USD', gridcolor='#EDF0F4', secondary_y=False)
     fig.update_yaxes(title_text='Impactos', showgrid=False, secondary_y=True)
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    _render_plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
 def manager_gauge():
@@ -1566,7 +1576,7 @@ def manager_gauge():
         },
     ))
     fig.update_layout(height=300, margin=dict(l=20, r=20, t=55, b=20), paper_bgcolor='white')
-    st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+    _render_plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
 
 def render_manager():
@@ -1619,7 +1629,7 @@ def render_manager():
             fig.add_trace(go.Scatter(x=[r['month'] for r in hist], y=[r['gross_profit'] for r in hist], name='Ganancia bruta', line=dict(color='#14804A', width=3), mode='lines+markers'))
             fig.add_trace(go.Scatter(x=[r['month'] for r in hist], y=[r['returns'] for r in hist], name='Devoluciones', line=dict(color='#E46A1A', width=2), mode='lines+markers'))
             fig.update_layout(height=410, margin=dict(l=20, r=20, t=10, b=20), paper_bgcolor='white', plot_bgcolor='white', yaxis=dict(gridcolor='#EDF0F4'), xaxis=dict(showgrid=False), legend=dict(orientation='h', y=1.04))
-            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+            _render_plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
 
         section_heading("Resumen de proveedores", "Venta, margen, devolución, volumen, clientes y crecimiento vs. período comparable.", chip="executive table")
         ptable = manager_provider_table()[:20]
@@ -1842,7 +1852,7 @@ def render_manager():
                     for xi, d in enumerate(days_hm):
                         fig.add_annotation(x=d,y=ss,text=text[yi][xi],showarrow=False,font=dict(size=10,color='#101827'))
                 fig.update_layout(height=max(390,55*len(sellers_hm)),margin=dict(l=10,r=10,t=10,b=20),paper_bgcolor='white',plot_bgcolor='white')
-                st.plotly_chart(fig,use_container_width=True,config={'displayModeBar':False})
+                _render_plotly_chart(fig,use_container_width=True,config={'displayModeBar':False})
             else:
                 st.info("No hay datos suficientes para el mapa de calor.")
         with right:
@@ -1998,7 +2008,7 @@ if page == "Mi día":
             xaxis=dict(side="top", tickfont=dict(size=13), showgrid=False),
             yaxis=dict(autorange="reversed", tickfont=dict(size=12), showgrid=False),
         )
-        st.plotly_chart(fig_hm, use_container_width=True, config={"displayModeBar": False})
+        _render_plotly_chart(fig_hm, use_container_width=True, config={"displayModeBar": False})
     else:
         st.info("No hay datos suficientes para el mapa de calor.")
 
@@ -2053,7 +2063,7 @@ if page == "Mi día":
             xaxis=dict(title="Cantidad (unidades)", gridcolor="#EDF0F4", zeroline=False),
             yaxis=dict(title="Precio unitario (USD)", gridcolor="#EDF0F4", zeroline=False),
         )
-        st.plotly_chart(fig_sc, use_container_width=True, config={"displayModeBar": False})
+        _render_plotly_chart(fig_sc, use_container_width=True, config={"displayModeBar": False})
     else:
         st.info("No hay líneas con cantidad y precio válidos para el filtro.")
 
@@ -2322,7 +2332,7 @@ elif page == "Mi desempeño":
             xaxis=dict(side="top", tickfont=dict(size=12), showgrid=False),
             yaxis=dict(autorange="reversed", tickfont=dict(size=11), showgrid=False),
         )
-        st.plotly_chart(fig_hm, use_container_width=True, config={"displayModeBar": False})
+        _render_plotly_chart(fig_hm, use_container_width=True, config={"displayModeBar": False})
     else:
         st.info("No hay datos suficientes para el mapa de calor.")
 
@@ -2351,7 +2361,7 @@ elif page == "Mi desempeño":
                 xaxis=dict(title="Cantidad (unidades)", gridcolor="#EDF0F4", zeroline=False),
                 yaxis=dict(title="Precio unitario (USD)", gridcolor="#EDF0F4", zeroline=False),
             )
-            st.plotly_chart(fig_sc, use_container_width=True, config={"displayModeBar": False})
+            _render_plotly_chart(fig_sc, use_container_width=True, config={"displayModeBar": False})
         else:
             st.info("No hay líneas con cantidad y precio válidos para el filtro.")
     with h_right:
@@ -2365,7 +2375,7 @@ elif page == "Mi desempeño":
             x=[r["month"] for r in months], y=[r["returns"] for r in months], name="Devoluciones", line=dict(color="#E46A1A", width=3), mode="lines+markers"
         ))
         fig.update_layout(height=420, margin=dict(l=20, r=20, t=10, b=20), paper_bgcolor="white", plot_bgcolor="white", yaxis=dict(gridcolor="#EDF0F4", zeroline=False), xaxis=dict(showgrid=False))
-        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+        _render_plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
     st.write("")
     section_heading("Ranking de proveedores: ventas netas y volumen", "Comparación por ventas netas y por unidades vendidas. Se muestran los proveedores con más y con menos movimiento dentro del filtro actual.", chip="ventas + unidades")
