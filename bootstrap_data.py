@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import base64
+import json
 import lzma
 import os
+import sqlite3
+import zlib
 from pathlib import Path
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -10,32 +14,57 @@ from cryptography.fernet import Fernet, InvalidToken
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "dashboard.db"
 PARTS_DIR = BASE_DIR / "data_parts"
+_PATCH_ID = "digar_2026_09_18_21_v1"
+_PATCH_B64 = "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"
+
+
+def _apply_runtime_patches(db_path: Path) -> None:
+    payload = json.loads(zlib.decompress(base64.b64decode(_PATCH_B64)).decode("utf-8"))
+    cols = payload["columns"]
+    patch_rows = payload["rows"]
+    quoted_cols = ", ".join(f'"{c}"' for c in cols)
+    placeholders = ",".join(["?"] * len(cols))
+
+    with sqlite3.connect(db_path) as con:
+        con.execute(
+            "CREATE TABLE IF NOT EXISTS runtime_patches ("
+            "patch_id TEXT PRIMARY KEY, applied_at TEXT DEFAULT CURRENT_TIMESTAMP)"
+        )
+        if con.execute("SELECT 1 FROM runtime_patches WHERE patch_id=?", (_PATCH_ID,)).fetchone():
+            return
+
+        con.execute(
+            "DELETE FROM sales WHERE company='DIGAR' "
+            "AND invoice_date BETWEEN '2026-09-18' AND '2026-09-21'"
+        )
+        con.executemany(
+            f"INSERT INTO sales ({quoted_cols}) VALUES ({placeholders})",
+            patch_rows,
+        )
+        con.execute("INSERT INTO runtime_patches(patch_id) VALUES (?)", (_PATCH_ID,))
+        con.commit()
 
 
 def ensure_database() -> Path:
-    """Materialize the encrypted pilot SQLite database at runtime.
+    """Materialize the encrypted SQLite base and apply safe incremental patches."""
+    if not (DB_PATH.exists() and DB_PATH.stat().st_size > 1024 * 1024):
+        key = os.environ.get("OGSA_DB_KEY", "").strip()
+        if not key:
+            raise RuntimeError("Falta la variable segura OGSA_DB_KEY.")
 
-    The repository only contains Fernet-encrypted, XZ-compressed chunks. The
-    decryption key is supplied by Railway as OGSA_DB_KEY and is never committed.
-    """
-    if DB_PATH.exists() and DB_PATH.stat().st_size > 1024 * 1024:
-        return DB_PATH
+        parts = sorted(PARTS_DIR.glob("dashboard.db.xz.enc.part*"))
+        if not parts:
+            raise RuntimeError("No se encontraron los bloques cifrados de datos.")
 
-    key = os.environ.get("OGSA_DB_KEY", "").strip()
-    if not key:
-        raise RuntimeError("Falta la variable segura OGSA_DB_KEY.")
+        token = b"".join(p.read_bytes() for p in parts)
+        try:
+            compressed = Fernet(key.encode("ascii")).decrypt(token)
+        except (InvalidToken, ValueError) as exc:
+            raise RuntimeError("No se pudo descifrar la base de datos.") from exc
 
-    parts = sorted(PARTS_DIR.glob("dashboard.db.xz.enc.part*"))
-    if not parts:
-        raise RuntimeError("No se encontraron los bloques cifrados de datos.")
+        tmp = DB_PATH.with_suffix(".db.tmp")
+        tmp.write_bytes(lzma.decompress(compressed))
+        os.replace(tmp, DB_PATH)
 
-    token = b"".join(p.read_bytes() for p in parts)
-    try:
-        compressed = Fernet(key.encode("ascii")).decrypt(token)
-    except (InvalidToken, ValueError) as exc:
-        raise RuntimeError("No se pudo descifrar la base de datos.") from exc
-
-    tmp = DB_PATH.with_suffix(".db.tmp")
-    tmp.write_bytes(lzma.decompress(compressed))
-    os.replace(tmp, DB_PATH)
+    _apply_runtime_patches(DB_PATH)
     return DB_PATH
