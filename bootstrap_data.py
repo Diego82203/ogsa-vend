@@ -20,6 +20,14 @@ def _apply_runtime_patch(db_path: Path) -> None:
     """Apply a private data patch supplied only through Railway environment variables."""
     raw_patch = os.environ.get("OGSA_RUNTIME_PATCH_B64", "").strip()
     if not raw_patch:
+        parts = []
+        for i in range(10):
+            part = os.environ.get(f"OGSA_RUNTIME_PATCH_{i}", "")
+            if not part:
+                break
+            parts.append(part)
+        raw_patch = "".join(parts).strip()
+    if not raw_patch:
         return
 
     try:
