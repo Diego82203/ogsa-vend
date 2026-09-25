@@ -36,12 +36,13 @@ MONTHS_FULL_ES = {
     7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre", 11: "Noviembre", 12: "Diciembre",
 }
 
-st.set_page_config(
-    page_title=("OGSA · Vendedores" if APP_MODE == "Vendedor" else "OGSA · Gerencial"),
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state=("auto" if APP_MODE == "Vendedor" else "expanded"),
-)
+if os.environ.get("OGSA_PAGE_CONFIGURED", "0") != "1":
+    st.set_page_config(
+        page_title=("OGSA · Vendedores" if APP_MODE == "Vendedor" else "OGSA · Gerencial"),
+        page_icon="📊",
+        layout="wide",
+        initial_sidebar_state=("auto" if APP_MODE == "Vendedor" else "expanded"),
+    )
 
 st.markdown(
     """
