@@ -77,6 +77,18 @@ def authenticate_access(mode: str) -> dict:
 
     st.markdown("## Acceso OGSA")
     st.caption("Portal de vendedores" if mode == "Vendedor" else "Portal gerencial")
+    if mode == "Vendedor":
+        st.markdown(
+            '<div style="margin:.15rem 0 1rem;"><a href="?portal=gerencial" target="_self" '
+            'style="font-size:.86rem;font-weight:700;text-decoration:none;">Ingresar al dashboard gerencial →</a></div>',
+            unsafe_allow_html=True,
+        )
+    else:
+        st.markdown(
+            '<div style="margin:.15rem 0 1rem;"><a href="?portal=vendedores" target="_self" '
+            'style="font-size:.86rem;font-weight:700;text-decoration:none;">← Volver al portal de vendedores</a></div>',
+            unsafe_allow_html=True,
+        )
 
     if not users:
         st.error("No hay usuarios configurados para este portal.")
