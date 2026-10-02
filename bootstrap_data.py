@@ -21,7 +21,7 @@ def _apply_runtime_patch(db_path: Path) -> None:
     raw_patch = os.environ.get("OGSA_RUNTIME_PATCH_B64", "").strip()
     if not raw_patch:
         parts = []
-        for i in range(10):
+        for i in range(32):
             part = os.environ.get(f"OGSA_RUNTIME_PATCH_{i}", "")
             if not part:
                 break
